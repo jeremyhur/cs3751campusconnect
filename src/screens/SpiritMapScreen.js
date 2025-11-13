@@ -11,12 +11,14 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GTColors, GTFonts, GTFontStyles } from '../theme';
+import { useEvents } from '../context/EventsContext';
 
 const { width, height } = Dimensions.get('window');
 
 export default function SpiritMapScreen() {
   const insets = useSafeAreaInsets();
   const [imageAspectRatio, setImageAspectRatio] = useState(1);
+  const { signUpForEvent, isSignedUp } = useEvents();
   
   // Get image dimensions when image loads
   const handleImageLoad = (event) => {
@@ -154,17 +156,30 @@ export default function SpiritMapScreen() {
         <View style={styles.eventsSection}>
           <Text style={styles.sectionTitle}>Upcoming Events</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-            {gamingEvents.map((event) => (
-              <View key={event.id} style={styles.eventCard}>
-                <Text style={styles.eventTitle}>{event.title}</Text>
-                <Text style={styles.eventDetails}>📍 {event.building}</Text>
-                <Text style={styles.eventDetails}>🕐 {event.time} - {event.date}</Text>
-                <Text style={styles.eventDetails}>👥 {event.players} players</Text>
-                <TouchableOpacity style={styles.joinButton}>
-                  <Text style={styles.joinButtonText}>Join Event</Text>
-                </TouchableOpacity>
-              </View>
-            ))}
+            {gamingEvents.map((event) => {
+              const signedUp = isSignedUp(event.id);
+              return (
+                <View key={event.id} style={styles.eventCard}>
+                  <Text style={styles.eventTitle}>{event.title}</Text>
+                  <Text style={styles.eventDetails}>📍 {event.building}</Text>
+                  <Text style={styles.eventDetails}>🕐 {event.time} - {event.date}</Text>
+                  <Text style={styles.eventDetails}>👥 {event.players} players</Text>
+                  <TouchableOpacity
+                    style={[styles.joinButton, signedUp && styles.joinedButton]}
+                    onPress={() => {
+                      if (!signedUp) {
+                        signUpForEvent(event);
+                      }
+                    }}
+                    disabled={signedUp}
+                  >
+                    <Text style={styles.joinButtonText}>
+                      {signedUp ? '✓ Signed Up' : 'Join Event'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
           </ScrollView>
         </View>
 
@@ -369,6 +384,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: GTColors.goldDark,
+  },
+  joinedButton: {
+    backgroundColor: GTColors.goldDark,
+    opacity: 0.7,
   },
   joinButtonText: {
     ...GTFontStyles.button,

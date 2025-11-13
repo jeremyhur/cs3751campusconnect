@@ -7,6 +7,7 @@ import { StyleSheet, View, Text, Platform, TouchableOpacity, Modal, Animated, Di
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GTColors, GTFonts, GTFontStyles } from './src/theme';
 import { MatchesProvider } from './src/context/MatchesContext';
+import { EventsProvider } from './src/context/EventsContext';
 import HomeScreen from './src/screens/HomeScreen';
 import SwipeSyncScreen from './src/screens/SwipeSyncScreen';
 import SpiritMapScreen from './src/screens/SpiritMapScreen';
@@ -14,6 +15,7 @@ import ReviewScreen from './src/screens/ReviewScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import MatchesScreen from './src/screens/MatchesScreen';
 import ChatScreen from './src/screens/ChatScreen';
+import EventsScreen from './src/screens/EventsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -199,13 +201,20 @@ function SideMenu({ visible, onClose, navigation }) {
               <Text style={styles.menuIcon}>🏠</Text>
               <Text style={styles.menuItemText}>Home</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() => handleNavigate('Matches')}
-            >
-              <Text style={styles.menuIcon}>💬</Text>
-              <Text style={styles.menuItemText}>Your Matches</Text>
-            </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => handleNavigate('Matches')}
+          >
+            <Text style={styles.menuIcon}>💬</Text>
+            <Text style={styles.menuItemText}>Your Matches</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => handleNavigate('Events')}
+          >
+            <Text style={styles.menuIcon}>📅</Text>
+            <Text style={styles.menuItemText}>Events</Text>
+          </TouchableOpacity>
           </ScrollView>
         </Animated.View>
       </View>
@@ -218,56 +227,75 @@ export default function App() {
 
   return (
     <MatchesProvider>
-      <SafeAreaProvider>
-        <NavigationContainer>
-          <StatusBar style="light" />
-          <Stack.Navigator screenOptions={{ headerShown: false }}>
-            {!isLoggedIn ? (
-              <Stack.Screen name="Home">
-                {(props) => <HomeScreen {...props} setIsLoggedIn={setIsLoggedIn} />}
-              </Stack.Screen>
-            ) : (
-              <>
-                <Stack.Screen name="MainTabs" component={MainTabs} />
-                <Stack.Screen
-                  name="Matches"
-                  component={MatchesScreen}
-                  options={{
-                    headerShown: true,
-                    headerStyle: {
-                      backgroundColor: GTColors.darkCard,
-                      borderBottomWidth: 2,
-                      borderBottomColor: GTColors.gold,
-                    },
-                    headerTintColor: GTColors.gold,
-                    headerTitleStyle: {
-                      ...GTFontStyles.heading,
-                      fontSize: 20,
-                    },
-                  }}
-                />
-                <Stack.Screen
-                  name="Chat"
-                  component={ChatScreen}
-                  options={{
-                    headerShown: true,
-                    headerStyle: {
-                      backgroundColor: GTColors.darkCard,
-                      borderBottomWidth: 2,
-                      borderBottomColor: GTColors.gold,
-                    },
-                    headerTintColor: GTColors.gold,
-                    headerTitleStyle: {
-                      ...GTFontStyles.heading,
-                      fontSize: 20,
-                    },
-                  }}
-                />
-              </>
-            )}
-          </Stack.Navigator>
-        </NavigationContainer>
-      </SafeAreaProvider>
+      <EventsProvider>
+        <SafeAreaProvider>
+          <NavigationContainer>
+            <StatusBar style="light" />
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+              {!isLoggedIn ? (
+                <Stack.Screen name="Home">
+                  {(props) => <HomeScreen {...props} setIsLoggedIn={setIsLoggedIn} />}
+                </Stack.Screen>
+              ) : (
+                <>
+                  <Stack.Screen name="MainTabs" component={MainTabs} />
+                  <Stack.Screen
+                    name="Matches"
+                    component={MatchesScreen}
+                    options={{
+                      headerShown: true,
+                      headerStyle: {
+                        backgroundColor: GTColors.darkCard,
+                        borderBottomWidth: 2,
+                        borderBottomColor: GTColors.gold,
+                      },
+                      headerTintColor: GTColors.gold,
+                      headerTitleStyle: {
+                        ...GTFontStyles.heading,
+                        fontSize: 20,
+                      },
+                    }}
+                  />
+                  <Stack.Screen
+                    name="Events"
+                    component={EventsScreen}
+                    options={{
+                      headerShown: true,
+                      headerStyle: {
+                        backgroundColor: GTColors.darkCard,
+                        borderBottomWidth: 2,
+                        borderBottomColor: GTColors.gold,
+                      },
+                      headerTintColor: GTColors.gold,
+                      headerTitleStyle: {
+                        ...GTFontStyles.heading,
+                        fontSize: 20,
+                      },
+                    }}
+                  />
+                  <Stack.Screen
+                    name="Chat"
+                    component={ChatScreen}
+                    options={{
+                      headerShown: true,
+                      headerStyle: {
+                        backgroundColor: GTColors.darkCard,
+                        borderBottomWidth: 2,
+                        borderBottomColor: GTColors.gold,
+                      },
+                      headerTintColor: GTColors.gold,
+                      headerTitleStyle: {
+                        ...GTFontStyles.heading,
+                        fontSize: 20,
+                      },
+                    }}
+                  />
+                </>
+              )}
+            </Stack.Navigator>
+          </NavigationContainer>
+        </SafeAreaProvider>
+      </EventsProvider>
     </MatchesProvider>
   );
 }

@@ -7,7 +7,10 @@ import {
   SafeAreaView,
   ScrollView,
   Dimensions,
+  Platform,
+  Image,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GTColors, GTFonts, GTFontStyles } from '../theme';
 import { useMatches } from '../context/MatchesContext';
 import MatchSuccessModal from '../components/MatchSuccessModal';
@@ -19,6 +22,7 @@ export default function SwipeSyncScreen() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [matchedUser, setMatchedUser] = useState(null);
   const { addMatch } = useMatches();
+  const insets = useSafeAreaInsets();
 
   // Sample profile data - expanded list
   const profiles = [
@@ -33,6 +37,7 @@ export default function SwipeSyncScreen() {
       genres: ['FPS', 'MOBA', 'Battle Royale'],
       interests: ['Rock Climbing', 'Crochet', 'Guitar'],
       tags: ['Competitive', 'Late Nights', 'Friendly'],
+      profilePicture: require('../../assets/pfp1.jpeg'),
     },
     {
       id: 2,
@@ -45,6 +50,7 @@ export default function SwipeSyncScreen() {
       genres: ['RPG', 'Strategy', 'Indie'],
       interests: ['Reading', 'Coding', 'Music'],
       tags: ['Team Player', 'Helpful', 'Chill'],
+      profilePicture: require('../../assets/pfp2.jpeg'),
     },
     {
       id: 3,
@@ -57,6 +63,7 @@ export default function SwipeSyncScreen() {
       genres: ['FPS', 'Tactical Shooter'],
       interests: ['Esports', 'Streaming', 'Basketball'],
       tags: ['Competitive', 'Early Bird', 'Strategic'],
+      profilePicture: require('../../assets/pfp3.jpeg'),
     },
     {
       id: 4,
@@ -69,6 +76,7 @@ export default function SwipeSyncScreen() {
       genres: ['MOBA', 'Strategy'],
       interests: ['Chess', 'Finance', 'Cooking'],
       tags: ['Team Player', 'Late Nights', 'Analytical'],
+      profilePicture: require('../../assets/pfp4.jpeg'),
     },
     {
       id: 5,
@@ -81,6 +89,7 @@ export default function SwipeSyncScreen() {
       genres: ['FPS', 'Tactical Shooter'],
       interests: ['3D Printing', 'Robotics', 'Gym'],
       tags: ['Competitive', 'Precise', 'Focused'],
+      profilePicture: require('../../assets/pfp5.jpeg'),
     },
     {
       id: 6,
@@ -120,6 +129,9 @@ export default function SwipeSyncScreen() {
     },
   ];
 
+  const [viewedProfiles, setViewedProfiles] = useState(new Set());
+  const allProfilesViewed = viewedProfiles.size >= profiles.length;
+
   const handleAccept = () => {
     const profile = profiles[currentProfile];
     console.log('Accepted:', profile.username);
@@ -129,25 +141,24 @@ export default function SwipeSyncScreen() {
     setMatchedUser(newMatch);
     setShowSuccessModal(true);
     
+    // Mark as viewed
+    setViewedProfiles(prev => new Set([...prev, currentProfile]));
+    
     // Move to next profile after a delay
     setTimeout(() => {
       if (currentProfile < profiles.length - 1) {
         setCurrentProfile(currentProfile + 1);
-      } else {
-        // Loop back to start if at end
-        setCurrentProfile(0);
       }
     }, 2000);
   };
 
   const handleReject = () => {
     console.log('Rejected:', profiles[currentProfile].username);
+    // Mark as viewed
+    setViewedProfiles(prev => new Set([...prev, currentProfile]));
     // Move to next profile
     if (currentProfile < profiles.length - 1) {
       setCurrentProfile(currentProfile + 1);
-    } else {
-      // Loop back to start if at end
-      setCurrentProfile(0);
     }
   };
 
@@ -156,7 +167,7 @@ export default function SwipeSyncScreen() {
     setMatchedUser(null);
   };
 
-  const profile = profiles[currentProfile];
+  const profile = allProfilesViewed ? null : profiles[currentProfile];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -168,21 +179,42 @@ export default function SwipeSyncScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>SwipeSync</Text>
         <Text style={styles.headerSubtitle}>Find your gaming squad</Text>
-        <Text style={styles.profileCount}>
-          {currentProfile + 1} / {profiles.length}
-        </Text>
+        {!allProfilesViewed && (
+          <Text style={styles.profileCount}>
+            {currentProfile + 1} / {profiles.length}
+          </Text>
+        )}
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Profile Card */}
-        <View style={styles.profileCard}>
-          {/* Profile Picture */}
-          <View style={styles.profilePicture}>
-            <View style={styles.profileIcon}>
-              <View style={styles.iconHead} />
-              <View style={styles.iconBody} />
-            </View>
-          </View>
+      {allProfilesViewed ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyEmoji}>🎮</Text>
+          <Text style={styles.emptyTitle}>No More Matches</Text>
+          <Text style={styles.emptyText}>
+            You've viewed all available profiles!{'\n'}
+            Check back later for new gamers.
+          </Text>
+        </View>
+      ) : (
+        <>
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            {/* Profile Card */}
+            <View style={styles.profileCard}>
+              {/* Profile Picture */}
+              <View style={styles.profilePicture}>
+                {profile.profilePicture ? (
+                  <Image
+                    source={profile.profilePicture}
+                    style={styles.profilePictureImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={styles.profileIcon}>
+                    <View style={styles.iconHead} />
+                    <View style={styles.iconBody} />
+                  </View>
+                )}
+              </View>
 
           {/* User Information */}
           <View style={styles.userInfo}>
@@ -242,24 +274,26 @@ export default function SwipeSyncScreen() {
           </View>
         </View>
 
-        {/* Action Buttons */}
-        <View style={styles.actionButtons}>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.rejectButton]}
-            onPress={handleReject}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.actionButtonText}>✕</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.acceptButton]}
-            onPress={handleAccept}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.actionButtonText}>✓</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+            {/* Action Buttons */}
+            <View style={[styles.actionButtons, { paddingBottom: Math.max(insets.bottom, 20) + 70 }]}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.rejectButton]}
+                onPress={handleReject}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.actionButtonText}>✕</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.acceptButton]}
+                onPress={handleAccept}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.actionButtonText}>✓</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </>
+      )}
     </SafeAreaView>
   );
 }
@@ -296,7 +330,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 100,
+    paddingBottom: 20,
   },
   profileCard: {
     backgroundColor: GTColors.darkCard,
@@ -317,6 +351,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: GTColors.goldDark,
+    overflow: 'hidden',
+  },
+  profilePictureImage: {
+    width: '100%',
+    height: '100%',
   },
   profileIcon: {
     width: 60,
@@ -461,7 +500,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
+    paddingVertical: 20,
+    paddingBottom: 30,
+    backgroundColor: GTColors.darkBg,
   },
   actionButton: {
     width: 80,
@@ -485,6 +526,30 @@ const styles = StyleSheet.create({
     fontSize: 36,
     color: GTColors.white,
     fontWeight: 'bold',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  emptyEmoji: {
+    fontSize: 64,
+    marginBottom: 20,
+  },
+  emptyTitle: {
+    ...GTFontStyles.heading,
+    fontSize: 28,
+    color: GTColors.gold,
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  emptyText: {
+    ...GTFontStyles.body,
+    fontSize: 16,
+    color: GTColors.textMuted,
+    textAlign: 'center',
+    lineHeight: 24,
   },
 });
 

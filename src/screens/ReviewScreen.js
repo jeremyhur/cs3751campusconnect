@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   ScrollView,
   TextInput,
+  Image,
 } from 'react-native';
 import { GTColors, GTFonts, GTFontStyles } from '../theme';
 
@@ -63,9 +64,11 @@ export default function ReviewScreen() {
         {/* Header Section */}
         <View style={styles.headerSection}>
           <View style={styles.gameIcon}>
-            <View style={styles.gameIconInner}>
-              <Text style={styles.gameIconText}>VALORANT</Text>
-            </View>
+            <Image
+              source={require('../../assets/valorant.png')}
+              style={styles.gameIconImage}
+              resizeMode="contain"
+            />
           </View>
           
           <View style={styles.headerTextContainer}>
@@ -197,22 +200,18 @@ const styles = StyleSheet.create({
   gameIcon: {
     width: 60,
     height: 60,
-    backgroundColor: GTColors.gold,
+    backgroundColor: GTColors.darkCard,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 15,
     borderWidth: 2,
     borderColor: GTColors.goldDark,
+    overflow: 'hidden',
   },
-  gameIconInner: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  gameIconText: {
-    ...GTFontStyles.button,
-    fontSize: 10,
-    color: GTColors.darkBg,
+  gameIconImage: {
+    width: '100%',
+    height: '100%',
   },
   headerTextContainer: {
     width: '100%',
