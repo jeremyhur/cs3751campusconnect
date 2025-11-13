@@ -312,14 +312,12 @@ const styles = StyleSheet.create({
     ...GTFontStyles.heading,
     fontSize: 28,
     color: GTColors.gold,
-    letterSpacing: 2,
   },
   headerSubtitle: {
     ...GTFontStyles.body,
     fontSize: 14,
     color: GTColors.textMuted,
     marginTop: 5,
-    letterSpacing: 1,
   },
   profileCount: {
     ...GTFontStyles.body,
@@ -395,7 +393,6 @@ const styles = StyleSheet.create({
     ...GTFontStyles.heading,
     fontSize: 24,
     color: GTColors.textPrimary,
-    letterSpacing: 1,
   },
   reputationBadge: {
     backgroundColor: GTColors.gold,

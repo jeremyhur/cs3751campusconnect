@@ -14,55 +14,55 @@ export const GTColors = {
   textMuted: '#888888',
 };
 
-// Gamer-style font configuration
-// Using system fonts with bold weight and letter spacing for boxy, modern feel
+// Modern San Francisco font configuration
+// Using system fonts for a clean, modern iOS feel
 export const GTFonts = {
-  // Primary font - bold, boxy, gamer style
+  // Primary font - San Francisco on iOS, Roboto on Android
   primary: Platform.select({
-    ios: 'Arial-BoldMT',      // Bold, boxy on iOS
-    android: 'sans-serif-black', // Bold, boxy on Android
-    default: 'Arial Black',
+    ios: 'System',           // San Francisco on iOS
+    android: 'Roboto',       // Modern Roboto on Android
+    default: 'System',
   }),
-  // Alternative for when primary isn't available
-  fallback: Platform.select({
-    ios: 'HelveticaNeue-Bold',
-    android: 'Roboto-Bold',
-    default: 'Arial',
+  // Display font for large titles
+  display: Platform.select({
+    ios: 'System',           // SF Pro Display on iOS
+    android: 'Roboto',       // Roboto on Android
+    default: 'System',
   }),
   // Regular weight for body text
   regular: Platform.select({
-    ios: 'HelveticaNeue',
-    android: 'Roboto',
-    default: 'Arial',
+    ios: 'System',           // San Francisco on iOS
+    android: 'Roboto',       // Roboto on Android
+    default: 'System',
   }),
 };
 
-// Font styles with gamer aesthetic
+// Modern font styles with refined typography
 export const GTFontStyles = {
   title: {
-    fontFamily: GTFonts.primary,
-    fontWeight: 'bold',
-    letterSpacing: 2,
+    fontFamily: GTFonts.display,
+    fontWeight: '700',       // Bold
+    letterSpacing: -0.5,     // Tighter, more modern spacing
   },
   heading: {
     fontFamily: GTFonts.primary,
-    fontWeight: 'bold',
-    letterSpacing: 1.5,
+    fontWeight: '600',       // Semibold
+    letterSpacing: -0.3,     // Tighter spacing
   },
   body: {
     fontFamily: GTFonts.regular,
-    fontWeight: '600',
-    letterSpacing: 0.5,
+    fontWeight: '400',       // Regular weight
+    letterSpacing: 0,        // Natural spacing
   },
   label: {
     fontFamily: GTFonts.regular,
-    fontWeight: '600',
-    letterSpacing: 0.5,
+    fontWeight: '500',       // Medium weight
+    letterSpacing: 0,        // Natural spacing
   },
   button: {
     fontFamily: GTFonts.primary,
-    fontWeight: 'bold',
-    letterSpacing: 1,
+    fontWeight: '600',       // Semibold
+    letterSpacing: 0,        // Natural spacing
   },
 };
 

@@ -368,7 +368,6 @@ const styles = StyleSheet.create({
     fontFamily: GTFonts.regular,
     fontSize: 16,
     color: GTColors.textPrimary,
-    letterSpacing: 0.5,
   },
   optionsContainer: {
     flexDirection: 'row',
@@ -498,7 +497,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: GTColors.textPrimary,
     marginRight: 10,
-    letterSpacing: 0.5,
   },
   addInterestButton: {
     width: 40,

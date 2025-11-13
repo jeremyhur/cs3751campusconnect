@@ -8,6 +8,8 @@ import {
   ScrollView,
   TextInput,
   Image,
+  Modal,
+  Animated,
 } from 'react-native';
 import { GTColors, GTFonts, GTFontStyles } from '../theme';
 
@@ -17,6 +19,10 @@ export default function ReviewScreen() {
   const [comments, setComments] = useState('');
   const [reportChecked, setReportChecked] = useState(false);
   const [friendChecked, setFriendChecked] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [confirmScaleAnim] = useState(new Animated.Value(0));
+  const [successScaleAnim] = useState(new Animated.Value(0));
 
   const toggleTag = (tag) => {
     setSelectedTags(prev => 
@@ -27,6 +33,22 @@ export default function ReviewScreen() {
   };
 
   const handleSubmit = () => {
+    // Show confirmation modal
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmSubmit = () => {
+    setShowConfirmModal(false);
+    
+    // Animate success modal
+    setShowSuccessModal(true);
+    Animated.spring(successScaleAnim, {
+      toValue: 1,
+      friction: 8,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+    
     console.log('Submit feedback', {
       overallExp,
       selectedTags,
@@ -34,13 +56,40 @@ export default function ReviewScreen() {
       reportChecked,
       friendChecked,
     });
-    // Handle submit logic
+    
+    // Reset form after a delay
+    setTimeout(() => {
+      setOverallExp(null);
+      setSelectedTags([]);
+      setComments('');
+      setReportChecked(false);
+      setFriendChecked(false);
+      setShowSuccessModal(false);
+      successScaleAnim.setValue(0);
+    }, 2000);
+  };
+
+  const handleCancelSubmit = () => {
+    setShowConfirmModal(false);
   };
 
   const handleSkip = () => {
     console.log('Skip feedback');
     // Handle skip logic
   };
+
+  React.useEffect(() => {
+    if (showConfirmModal) {
+      Animated.spring(confirmScaleAnim, {
+        toValue: 1,
+        friction: 8,
+        tension: 40,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      confirmScaleAnim.setValue(0);
+    }
+  }, [showConfirmModal]);
 
   const experienceOptions = [
     { id: 'bad', emoji: '😞', label: 'Bad', color: GTColors.navy },
@@ -179,6 +228,75 @@ export default function ReviewScreen() {
           <Text style={styles.skipText}>Skip</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Confirmation Modal */}
+      <Modal
+        visible={showConfirmModal}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCancelSubmit}
+      >
+        <View style={styles.modalOverlay}>
+          <Animated.View
+            style={[
+              styles.modalContainer,
+              {
+                transform: [{ scale: confirmScaleAnim }],
+              },
+            ]}
+          >
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Submit Feedback?</Text>
+              <Text style={styles.modalText}>
+                Are you sure you want to submit this feedback? This action cannot be undone.
+              </Text>
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.modalButtonCancel]}
+                  onPress={handleCancelSubmit}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.modalButtonTextCancel}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.modalButtonConfirm]}
+                  onPress={handleConfirmSubmit}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.modalButtonTextConfirm}>Submit</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Animated.View>
+        </View>
+      </Modal>
+
+      {/* Success Modal */}
+      <Modal
+        visible={showSuccessModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSuccessModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <Animated.View
+            style={[
+              styles.modalContainer,
+              {
+                transform: [{ scale: successScaleAnim }],
+              },
+            ]}
+          >
+            <View style={styles.modalContent}>
+              <Text style={styles.successEmoji}>✓</Text>
+              <Text style={styles.modalTitle}>Feedback Submitted!</Text>
+              <Text style={styles.modalText}>
+                Thank you for your feedback. It helps improve the community!
+              </Text>
+            </View>
+          </Animated.View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -254,7 +372,6 @@ const styles = StyleSheet.create({
     ...GTFontStyles.heading,
     fontSize: 20,
     color: GTColors.textPrimary,
-    letterSpacing: 1,
   },
   gameSubtitle: {
     ...GTFontStyles.body,
@@ -334,7 +451,6 @@ const styles = StyleSheet.create({
     color: GTColors.textPrimary,
     minHeight: 100,
     textAlignVertical: 'top',
-    letterSpacing: 0.5,
   },
   reportContainer: {
     flexDirection: 'row',
@@ -389,5 +505,74 @@ const styles = StyleSheet.create({
     ...GTFontStyles.body,
     fontSize: 14,
     color: GTColors.textMuted,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    width: '85%',
+    maxWidth: 400,
+    backgroundColor: GTColors.darkCard,
+    borderRadius: 20,
+    borderWidth: 3,
+    borderColor: GTColors.gold,
+    overflow: 'hidden',
+  },
+  modalContent: {
+    padding: 30,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    ...GTFontStyles.heading,
+    fontSize: 24,
+    color: GTColors.gold,
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  modalText: {
+    ...GTFontStyles.body,
+    fontSize: 16,
+    color: GTColors.textPrimary,
+    marginBottom: 30,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 15,
+    borderRadius: 10,
+    borderWidth: 2,
+    alignItems: 'center',
+    marginHorizontal: 7.5,
+  },
+  modalButtonCancel: {
+    backgroundColor: GTColors.darkCard,
+    borderColor: GTColors.goldDark,
+  },
+  modalButtonConfirm: {
+    backgroundColor: GTColors.gold,
+    borderColor: GTColors.goldDark,
+  },
+  modalButtonTextCancel: {
+    ...GTFontStyles.button,
+    fontSize: 16,
+    color: GTColors.textPrimary,
+  },
+  modalButtonTextConfirm: {
+    ...GTFontStyles.button,
+    fontSize: 16,
+    color: GTColors.darkBg,
+  },
+  successEmoji: {
+    fontSize: 64,
+    marginBottom: 15,
   },
 });

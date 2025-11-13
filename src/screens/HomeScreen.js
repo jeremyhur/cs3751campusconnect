@@ -118,7 +118,6 @@ const styles = StyleSheet.create({
     ...GTFontStyles.body,
     fontSize: 16,
     color: GTColors.textMuted,
-    letterSpacing: 1,
   },
   form: {
     width: '100%',
@@ -139,7 +138,6 @@ const styles = StyleSheet.create({
     fontFamily: GTFonts.regular,
     fontSize: 16,
     color: GTColors.textPrimary,
-    letterSpacing: 0.5,
   },
   loginButton: {
     backgroundColor: GTColors.gold,

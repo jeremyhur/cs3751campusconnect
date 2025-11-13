@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   ScrollView,
 } from 'react-native';
+import { GTColors, GTFonts, GTFontStyles } from '../theme';
 
 export default function MatchingScreen() {
   const handleAccept = () => {
@@ -91,7 +92,7 @@ export default function MatchingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#2a1a3e',
+    backgroundColor: GTColors.darkBg,
   },
   scrollContent: {
     flexGrow: 1,
@@ -144,33 +145,28 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   username: {
-    fontFamily: 'monospace',
+    ...GTFontStyles.heading,
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
+    color: GTColors.textPrimary,
     marginBottom: 8,
-    letterSpacing: 1,
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 2,
   },
   infoText: {
-    fontFamily: 'monospace',
+    ...GTFontStyles.body,
     fontSize: 16,
-    color: '#fff',
+    color: GTColors.textPrimary,
     marginBottom: 4,
-    letterSpacing: 0.5,
   },
   section: {
     marginBottom: 25,
   },
   sectionHeader: {
-    fontFamily: 'monospace',
+    ...GTFontStyles.heading,
     fontSize: 18,
-    color: '#fff',
+    color: GTColors.textPrimary,
     marginBottom: 10,
-    fontWeight: 'bold',
-    letterSpacing: 1,
   },
   tagsContainer: {
     flexDirection: 'row',
@@ -178,13 +174,12 @@ const styles = StyleSheet.create({
     marginHorizontal: -5,
   },
   tag: {
-    fontFamily: 'monospace',
+    ...GTFontStyles.body,
     fontSize: 16,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 4,
     borderWidth: 2,
-    letterSpacing: 0.5,
     margin: 5,
   },
   tagCompetitive: {
@@ -208,13 +203,12 @@ const styles = StyleSheet.create({
     marginHorizontal: -5,
   },
   interest: {
-    fontFamily: 'monospace',
+    ...GTFontStyles.body,
     fontSize: 16,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 4,
     borderWidth: 2,
-    letterSpacing: 0.5,
     margin: 5,
   },
   interestRockClimbing: {
@@ -239,18 +233,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   matchLabel: {
-    fontFamily: 'monospace',
+    ...GTFontStyles.body,
     fontSize: 20,
-    color: '#fff',
-    letterSpacing: 1,
+    color: GTColors.textPrimary,
   },
   matchPercentage: {
-    fontFamily: 'monospace',
+    ...GTFontStyles.heading,
     fontSize: 20,
     color: '#2ecc71',
-    fontWeight: 'bold',
     textDecorationLine: 'underline',
-    letterSpacing: 1,
   },
   actionButtons: {
     flexDirection: 'row',

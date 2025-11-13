@@ -79,7 +79,6 @@ function MainTabs({ navigation, route }) {
           fontFamily: GTFonts.regular,
           fontSize: 10,
           fontWeight: '600',
-          letterSpacing: 0.5,
         },
       }}
     >
