@@ -20,7 +20,7 @@ const { width, height } = Dimensions.get('window');
 export default function SpiritMapScreen() {
   const insets = useSafeAreaInsets();
   const [imageAspectRatio, setImageAspectRatio] = useState(1);
-  const { signUpForEvent, isSignedUp } = useEvents();
+  const { signUpForEvent, isSignedUp, createdEvents } = useEvents();
   
   // Get image dimensions when image loads
   const handleImageLoad = (event) => {
@@ -32,7 +32,7 @@ export default function SpiritMapScreen() {
   
   // Sample gaming events with pixel coordinates for the map
   // These coordinates are approximate and should be adjusted based on actual map image
-  const gamingEvents = [
+  const sampleEvents = [
     {
       id: 1,
       title: 'Valorant Tournament',
@@ -64,6 +64,16 @@ export default function SpiritMapScreen() {
       descriptionLink: 'https://forms.gle/example',
     },
   ];
+
+  // Combine sample events with user-created events
+  // Ensure created events have location coordinates (default to center if not set)
+  const createdEventsWithLocation = createdEvents.map(event => ({
+    ...event,
+    location: event.location || { x: 50, y: 50 }, // Default to center if no location
+  }));
+
+  // Combine all events
+  const gamingEvents = [...sampleEvents, ...createdEventsWithLocation];
 
   // Sample friends with pixel coordinates
   const friends = [

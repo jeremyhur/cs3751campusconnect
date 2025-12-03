@@ -9,19 +9,58 @@ import {
   Dimensions,
   Platform,
   Image,
+  Modal,
+  TextInput,
+  Alert,
+  KeyboardAvoidingView,
+  FlatList,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GTColors, GTFonts, GTFontStyles } from '../theme';
 import { useMatches } from '../context/MatchesContext';
+import { useReviews } from '../context/ReviewsContext';
 import MatchSuccessModal from '../components/MatchSuccessModal';
 
 const { width } = Dimensions.get('window');
+
+// Helper function to convert overallExp to star rating
+const getStarRating = (overallExp) => {
+  switch (overallExp) {
+    case 'bad':
+      return 1;
+    case 'okay':
+      return 2;
+    case 'good':
+      return 3;
+    case 'great':
+      return 5;
+    default:
+      return 0;
+  }
+};
+
+// Star rating component
+const StarRating = ({ rating }) => {
+  return (
+    <View style={styles.starContainer}>
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Text key={star} style={styles.star}>
+          {star <= rating ? '★' : '☆'}
+        </Text>
+      ))}
+    </View>
+  );
+};
 
 export default function SwipeSyncScreen() {
   const [currentProfile, setCurrentProfile] = useState(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [matchedUser, setMatchedUser] = useState(null);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [selectedReviewId, setSelectedReviewId] = useState(null);
+  const [reportReason, setReportReason] = useState('');
   const { addMatch } = useMatches();
+  const { getReviewsForUser, reportReview } = useReviews();
   const insets = useSafeAreaInsets();
 
   // Sample profile data - expanded list
@@ -36,6 +75,9 @@ export default function SwipeSyncScreen() {
       bio: 'Love competitive gaming and always looking for teammates who communicate well. I play mostly in the evenings and weekends.',
       gamingStyle: 'Competitive',
       genres: ['FPS', 'MOBA', 'Battle Royale'],
+      games: ['Valorant', 'League of Legends', 'Apex Legends'],
+      competitiveRank: 'Valorant: Diamond 2',
+      rankVerified: true,
       interests: ['Rock Climbing', 'Crochet', 'Guitar'],
       tags: ['Competitive', 'Late Nights', 'Friendly'],
       profilePicture: require('../../assets/pfp1.jpeg'),
@@ -50,6 +92,7 @@ export default function SwipeSyncScreen() {
       bio: 'Casual gamer who enjoys story-driven games and co-op experiences. Always down for a chill gaming session!',
       gamingStyle: 'Casual',
       genres: ['RPG', 'Strategy', 'Indie'],
+      games: ['Baldur\'s Gate 3', 'Stardew Valley', 'Hades'],
       interests: ['Reading', 'Coding', 'Music'],
       tags: ['Team Player', 'Helpful', 'Chill'],
       profilePicture: require('../../assets/pfp2.jpeg'),
@@ -64,6 +107,9 @@ export default function SwipeSyncScreen() {
       bio: 'Immortal rank in Valorant, looking for serious teammates to climb ranked. I stream occasionally and love the competitive scene.',
       gamingStyle: 'Competitive',
       genres: ['FPS', 'Tactical Shooter'],
+      games: ['Valorant', 'CS2'],
+      competitiveRank: 'Valorant: Immortal 2',
+      rankVerified: true,
       interests: ['Esports', 'Streaming', 'Basketball'],
       tags: ['Competitive', 'Early Bird', 'Strategic'],
       profilePicture: require('../../assets/pfp3.jpeg'),
@@ -78,6 +124,9 @@ export default function SwipeSyncScreen() {
       bio: 'Diamond player in League, main support and ADC. Looking for a consistent team for ranked flex. Also love chess and strategy games!',
       gamingStyle: 'Ranked',
       genres: ['MOBA', 'Strategy'],
+      games: ['League of Legends', 'Teamfight Tactics'],
+      competitiveRank: 'League of Legends: Diamond 1',
+      rankVerified: true,
       interests: ['Chess', 'Finance', 'Cooking'],
       tags: ['Team Player', 'Late Nights', 'Analytical'],
       profilePicture: require('../../assets/pfp4.jpeg'),
@@ -92,6 +141,9 @@ export default function SwipeSyncScreen() {
       bio: 'Global Elite in CS2, very focused on improving aim and game sense. Looking for teammates who take the game seriously but stay positive.',
       gamingStyle: 'Competitive',
       genres: ['FPS', 'Tactical Shooter'],
+      games: ['CS2', 'Valorant'],
+      competitiveRank: 'CS2: Global Elite',
+      rankVerified: true,
       interests: ['3D Printing', 'Robotics', 'Gym'],
       tags: ['Competitive', 'Precise', 'Focused'],
       profilePicture: require('../../assets/pfp5.jpeg'),
@@ -106,6 +158,7 @@ export default function SwipeSyncScreen() {
       bio: 'Passionate about immersive RPGs and indie games. Love exploring rich storylines and beautiful worlds. Always up for co-op adventures!',
       gamingStyle: 'Casual',
       genres: ['RPG', 'Adventure', 'Indie'],
+      games: ['Elden Ring', 'Hollow Knight', 'Celeste'],
       interests: ['Art', 'Photography', 'Hiking'],
       tags: ['Creative', 'Chill', 'Explorer'],
     },
@@ -119,6 +172,9 @@ export default function SwipeSyncScreen() {
       bio: 'Masters rank in Apex, love fast-paced action and team coordination. Looking for a consistent squad to grind ranked with.',
       gamingStyle: 'Competitive',
       genres: ['Battle Royale', 'FPS'],
+      games: ['Apex Legends', 'Call of Duty: Warzone'],
+      competitiveRank: 'Apex Legends: Masters',
+      rankVerified: true,
       interests: ['Aviation', 'Sim Racing', 'Fitness'],
       tags: ['Competitive', 'Fast-Paced', 'Adrenaline'],
     },
@@ -132,6 +188,9 @@ export default function SwipeSyncScreen() {
       bio: 'Strategy game enthusiast, from RTS to turn-based. Love deep thinking and planning. Always looking for challenging opponents and teammates.',
       gamingStyle: 'Ranked',
       genres: ['Strategy', 'RTS', 'Turn-Based'],
+      games: ['Age of Empires IV', 'Chess.com', 'Civilization VI'],
+      competitiveRank: 'Chess.com: 1800 ELO',
+      rankVerified: false,
       interests: ['Puzzles', 'Board Games', 'Research'],
       tags: ['Strategic', 'Patient', 'Thinker'],
     },
@@ -173,6 +232,23 @@ export default function SwipeSyncScreen() {
   const handleCloseModal = () => {
     setShowSuccessModal(false);
     setMatchedUser(null);
+  };
+
+  const handleReportReview = (reviewId) => {
+    setSelectedReviewId(reviewId);
+    setShowReportModal(true);
+  };
+
+  const submitReport = () => {
+    if (selectedReviewId && reportReason.trim()) {
+      reportReview(selectedReviewId, reportReason);
+      Alert.alert('Report Submitted', 'Thank you for reporting this review. Our moderation team will review it.');
+      setShowReportModal(false);
+      setSelectedReviewId(null);
+      setReportReason('');
+    } else {
+      Alert.alert('Error', 'Please provide a reason for reporting this review.');
+    }
   };
 
   const profile = allProfilesViewed ? null : profiles[currentProfile];
@@ -245,6 +321,35 @@ export default function SwipeSyncScreen() {
             </View>
           )}
 
+          {/* Specific Games Played */}
+          {profile.games && profile.games.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionHeader}>Games I Play:</Text>
+              <View style={styles.gamesContainer}>
+                {profile.games.map((game, index) => (
+                  <View key={index} style={styles.gameBadge}>
+                    <Text style={styles.gameBadgeText}>{game}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* Competitive Rank */}
+          {profile.competitiveRank && (
+            <View style={styles.section}>
+              <Text style={styles.sectionHeader}>Competitive Rank:</Text>
+              <View style={styles.rankContainer}>
+                <Text style={styles.rankText}>{profile.competitiveRank}</Text>
+                {profile.rankVerified && (
+                  <View style={styles.verifiedBadge}>
+                    <Text style={styles.verifiedBadgeText}>✓ Verified</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          )}
+
           {/* Gaming Style */}
           <View style={styles.section}>
             <Text style={styles.sectionHeader}>Gaming Style:</Text>
@@ -288,6 +393,67 @@ export default function SwipeSyncScreen() {
               ))}
             </View>
           </View>
+
+          {/* Reviews & Feedback */}
+          {(() => {
+            const profileReviews = getReviewsForUser(profile.username);
+            return profileReviews.length > 0 ? (
+              <View style={styles.section}>
+                <View style={styles.reviewsHeader}>
+                  <Text style={styles.sectionHeader}>Reviews & Feedback:</Text>
+                  <Text style={styles.reviewCount}>
+                    {profileReviews.length} {profileReviews.length === 1 ? 'review' : 'reviews'}
+                  </Text>
+                </View>
+                <FlatList
+                  data={profileReviews}
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  keyExtractor={(item) => item.id}
+                  renderItem={({ item: review }) => (
+                    <View style={styles.reviewCard}>
+                      <View style={styles.reviewHeader}>
+                        <View>
+                          <Text style={styles.reviewerName}>{review.reviewerName || 'Anonymous'}</Text>
+                          <Text style={styles.reviewDate}>
+                            {new Date(review.createdAt).toLocaleDateString()}
+                          </Text>
+                        </View>
+                        {review.overallExp && (
+                          <View style={styles.reviewRating}>
+                            <StarRating rating={getStarRating(review.overallExp)} />
+                          </View>
+                        )}
+                      </View>
+                      {review.selectedTags && review.selectedTags.length > 0 && (
+                        <View style={styles.reviewTagsContainer}>
+                          {review.selectedTags.map((tag, index) => (
+                            <View key={index} style={styles.reviewTag}>
+                              <Text style={styles.reviewTagText}>{tag}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      )}
+                      {review.comments && (
+                        <Text style={styles.reviewComment}>{review.comments}</Text>
+                      )}
+                      {review.reported && (
+                        <Text style={styles.reportedBadge}>⚠️ Under Review</Text>
+                      )}
+                      <TouchableOpacity
+                        style={styles.reportButton}
+                        onPress={() => handleReportReview(review.id)}
+                      >
+                        <Text style={styles.reportButtonText}>🚫 Report</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                  contentContainerStyle={styles.reviewsListContent}
+                />
+              </View>
+            ) : null;
+          })()}
         </View>
 
             {/* Action Buttons */}
@@ -310,6 +476,69 @@ export default function SwipeSyncScreen() {
           </ScrollView>
         </>
       )}
+
+      {/* Report Review Modal */}
+      <Modal
+        visible={showReportModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          setShowReportModal(false);
+          setReportReason('');
+          setSelectedReviewId(null);
+        }}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Report Review</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowReportModal(false);
+                  setReportReason('');
+                  setSelectedReviewId(null);
+                }}
+                style={styles.closeButton}
+              >
+                <Text style={styles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.modalSubtitle}>
+              Help us maintain a positive community by reporting toxic or inappropriate reviews.
+            </Text>
+            <TextInput
+              style={styles.reportInput}
+              value={reportReason}
+              onChangeText={setReportReason}
+              placeholder="Reason for reporting (e.g., harassment, spam, false information)"
+              placeholderTextColor={GTColors.textMuted}
+              multiline
+              numberOfLines={4}
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelModalButton]}
+                onPress={() => {
+                  setShowReportModal(false);
+                  setReportReason('');
+                  setSelectedReviewId(null);
+                }}
+              >
+                <Text style={styles.cancelModalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.submitModalButton]}
+                onPress={submitReport}
+              >
+                <Text style={styles.submitModalButtonText}>Submit Report</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -574,6 +803,247 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: GTColors.goldDark,
+  },
+  gamesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -5,
+  },
+  gameBadge: {
+    backgroundColor: GTColors.gold,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 6,
+    margin: 5,
+    borderWidth: 2,
+    borderColor: GTColors.goldDark,
+  },
+  gameBadgeText: {
+    ...GTFontStyles.body,
+    fontSize: 14,
+    color: GTColors.darkBg,
+    fontWeight: '600',
+  },
+  rankContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: GTColors.darkBg,
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: GTColors.goldDark,
+  },
+  rankText: {
+    ...GTFontStyles.body,
+    fontSize: 15,
+    color: GTColors.textPrimary,
+    fontWeight: '600',
+    flex: 1,
+  },
+  verifiedBadge: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#2E7D32',
+    marginLeft: 10,
+  },
+  verifiedBadgeText: {
+    ...GTFontStyles.body,
+    fontSize: 11,
+    color: GTColors.white,
+    fontWeight: '600',
+  },
+  reviewsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  reviewCount: {
+    ...GTFontStyles.body,
+    fontSize: 12,
+    color: GTColors.textMuted,
+  },
+  reviewsListContent: {
+    paddingRight: 20,
+  },
+  reviewCard: {
+    backgroundColor: GTColors.darkBg,
+    borderRadius: 8,
+    padding: 12,
+    marginRight: 15,
+    borderWidth: 1,
+    borderColor: GTColors.goldDark,
+    width: width - 80, // Full width minus padding
+    minHeight: 180,
+  },
+  reviewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  reviewerName: {
+    ...GTFontStyles.heading,
+    fontSize: 14,
+    color: GTColors.gold,
+  },
+  reviewDate: {
+    ...GTFontStyles.body,
+    fontSize: 11,
+    color: GTColors.textMuted,
+    marginTop: 2,
+  },
+  reviewRating: {
+    alignItems: 'flex-end',
+  },
+  starContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  star: {
+    fontSize: 18,
+    color: GTColors.gold,
+    marginLeft: 2,
+  },
+  reviewTagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 8,
+    marginHorizontal: -3,
+  },
+  reviewTag: {
+    backgroundColor: GTColors.gold,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 4,
+    margin: 3,
+    borderWidth: 1,
+    borderColor: GTColors.goldDark,
+  },
+  reviewTagText: {
+    ...GTFontStyles.body,
+    fontSize: 10,
+    color: GTColors.darkBg,
+  },
+  reviewComment: {
+    ...GTFontStyles.body,
+    fontSize: 13,
+    color: GTColors.textPrimary,
+    lineHeight: 18,
+    marginTop: 4,
+  },
+  reportedBadge: {
+    ...GTFontStyles.body,
+    fontSize: 11,
+    color: '#ff9800',
+    marginTop: 6,
+  },
+  reportButton: {
+    alignSelf: 'flex-end',
+    marginTop: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: GTColors.darkCard,
+    borderWidth: 1,
+    borderColor: '#ff4444',
+  },
+  reportButtonText: {
+    ...GTFontStyles.body,
+    fontSize: 11,
+    color: '#ff4444',
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    width: '85%',
+    maxWidth: 400,
+    backgroundColor: GTColors.darkCard,
+    borderRadius: 20,
+    padding: 25,
+    borderWidth: 3,
+    borderColor: GTColors.gold,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+    borderBottomWidth: 2,
+    borderBottomColor: GTColors.gold,
+    paddingBottom: 15,
+  },
+  modalTitle: {
+    ...GTFontStyles.heading,
+    fontSize: 22,
+    color: GTColors.gold,
+  },
+  closeButton: {
+    padding: 5,
+  },
+  closeButtonText: {
+    fontSize: 24,
+    color: GTColors.gold,
+    fontWeight: 'bold',
+  },
+  modalSubtitle: {
+    ...GTFontStyles.body,
+    fontSize: 14,
+    color: GTColors.textMuted,
+    marginBottom: 20,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  reportInput: {
+    backgroundColor: GTColors.darkBg,
+    borderWidth: 2,
+    borderColor: GTColors.goldDark,
+    borderRadius: 8,
+    padding: 12,
+    fontFamily: GTFonts.regular,
+    fontSize: 14,
+    color: GTColors.textPrimary,
+    minHeight: 100,
+    textAlignVertical: 'top',
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    borderWidth: 2,
+  },
+  cancelModalButton: {
+    backgroundColor: GTColors.darkCard,
+    borderColor: GTColors.goldDark,
+  },
+  submitModalButton: {
+    backgroundColor: GTColors.gold,
+    borderColor: GTColors.goldDark,
+  },
+  cancelModalButtonText: {
+    ...GTFontStyles.button,
+    fontSize: 14,
+    color: GTColors.textPrimary,
+  },
+  submitModalButtonText: {
+    ...GTFontStyles.button,
+    fontSize: 14,
+    color: GTColors.darkBg,
   },
 });
 

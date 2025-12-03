@@ -11,9 +11,54 @@ import {
   Platform,
   Modal,
   Alert,
+  FlatList,
+  Dimensions,
 } from 'react-native';
 import { GTColors, GTFonts, GTFontStyles } from '../theme';
 import { useReviews } from '../context/ReviewsContext';
+
+const { width } = Dimensions.get('window');
+
+// Helper function to convert overallExp to star rating
+const getStarRating = (overallExp) => {
+  switch (overallExp) {
+    case 'bad':
+      return 1;
+    case 'okay':
+      return 2;
+    case 'good':
+      return 3;
+    case 'great':
+      return 5;
+    default:
+      return 0;
+  }
+};
+
+// Star rating component
+const StarRating = ({ rating }) => {
+  return (
+    <View style={starRatingStyles.starContainer}>
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Text key={star} style={starRatingStyles.star}>
+          {star <= rating ? '★' : '☆'}
+        </Text>
+      ))}
+    </View>
+  );
+};
+
+const starRatingStyles = StyleSheet.create({
+  starContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  star: {
+    fontSize: 18,
+    color: GTColors.gold,
+    marginLeft: 2,
+  },
+});
 
 export default function ProfileScreen() {
   const [username, setUsername] = useState('Gamer123');
@@ -270,7 +315,7 @@ export default function ProfileScreen() {
           {/* Specific Games Played - MANDATORY */}
           <View style={styles.section}>
             <Text style={styles.sectionHeader}>
-              Specific Games Played <Text style={styles.required}>*</Text>
+              Games <Text style={styles.required}>*</Text>
             </Text>
             <View style={styles.gamesContainer}>
               {selectedGames.map((game, index) => (
@@ -403,52 +448,63 @@ export default function ProfileScreen() {
 
           {/* Reviews Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionHeader}>Reviews & Feedback</Text>
+            <View style={styles.reviewsHeader}>
+              <Text style={styles.sectionHeader}>Reviews & Feedback</Text>
+              {userReviews.length > 0 && (
+                <Text style={styles.reviewCount}>
+                  {userReviews.length} {userReviews.length === 1 ? 'review' : 'reviews'}
+                </Text>
+              )}
+            </View>
             {userReviews.length === 0 ? (
               <Text style={styles.noReviewsText}>No reviews yet</Text>
             ) : (
-              userReviews.map((review) => (
-                <View key={review.id} style={styles.reviewCard}>
-                  <View style={styles.reviewHeader}>
-                    <View>
-                      <Text style={styles.reviewerName}>{review.reviewerName || 'Anonymous'}</Text>
-                      <Text style={styles.reviewDate}>
-                        {new Date(review.createdAt).toLocaleDateString()}
-                      </Text>
-                    </View>
-                    <View style={styles.reviewRating}>
-                      {review.overallExp && (
-                        <Text style={styles.ratingEmoji}>
-                          {review.overallExp === 'bad' ? '😞' : 
-                           review.overallExp === 'okay' ? '😐' : 
-                           review.overallExp === 'good' ? '🙂' : '😄'}
+              <FlatList
+                data={userReviews}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item: review }) => (
+                  <View style={styles.reviewCard}>
+                    <View style={styles.reviewHeader}>
+                      <View>
+                        <Text style={styles.reviewerName}>{review.reviewerName || 'Anonymous'}</Text>
+                        <Text style={styles.reviewDate}>
+                          {new Date(review.createdAt).toLocaleDateString()}
                         </Text>
-                      )}
+                      </View>
+                      <View style={styles.reviewRating}>
+                        {review.overallExp && (
+                          <StarRating rating={getStarRating(review.overallExp)} />
+                        )}
+                      </View>
                     </View>
+                    {review.selectedTags && review.selectedTags.length > 0 && (
+                      <View style={styles.reviewTagsContainer}>
+                        {review.selectedTags.map((tag, index) => (
+                          <View key={index} style={styles.reviewTag}>
+                            <Text style={styles.reviewTagText}>{tag}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                    {review.comments && (
+                      <Text style={styles.reviewComment}>{review.comments}</Text>
+                    )}
+                    {review.reported && (
+                      <Text style={styles.reportedBadge}>⚠️ Under Review</Text>
+                    )}
+                    <TouchableOpacity
+                      style={styles.reportButton}
+                      onPress={() => handleReportReview(review.id)}
+                    >
+                      <Text style={styles.reportButtonText}>Report</Text>
+                    </TouchableOpacity>
                   </View>
-                  {review.selectedTags && review.selectedTags.length > 0 && (
-                    <View style={styles.reviewTagsContainer}>
-                      {review.selectedTags.map((tag, index) => (
-                        <View key={index} style={styles.reviewTag}>
-                          <Text style={styles.reviewTagText}>{tag}</Text>
-                        </View>
-                      ))}
-                    </View>
-                  )}
-                  {review.comments && (
-                    <Text style={styles.reviewComment}>{review.comments}</Text>
-                  )}
-                  {review.reported && (
-                    <Text style={styles.reportedBadge}>⚠️ Under Review</Text>
-                  )}
-                  <TouchableOpacity
-                    style={styles.reportButton}
-                    onPress={() => handleReportReview(review.id)}
-                  >
-                    <Text style={styles.reportButtonText}>Report</Text>
-                  </TouchableOpacity>
-                </View>
-              ))
+                )}
+                contentContainerStyle={styles.reviewsListContent}
+              />
             )}
           </View>
 
@@ -901,9 +957,11 @@ const styles = StyleSheet.create({
     backgroundColor: GTColors.darkCard,
     borderRadius: 8,
     padding: 15,
-    marginBottom: 12,
+    marginRight: 15,
     borderWidth: 1,
     borderColor: GTColors.goldDark,
+    width: width - 80, // Full width minus padding
+    minHeight: 200,
   },
   reviewHeader: {
     flexDirection: 'row',
@@ -922,11 +980,31 @@ const styles = StyleSheet.create({
     color: GTColors.textMuted,
     marginTop: 2,
   },
+  reviewsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  reviewCount: {
+    ...GTFontStyles.body,
+    fontSize: 12,
+    color: GTColors.textMuted,
+  },
+  reviewsListContent: {
+    paddingRight: 20,
+  },
   reviewRating: {
+    alignItems: 'flex-end',
+  },
+  starContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  ratingEmoji: {
-    fontSize: 24,
+  star: {
+    fontSize: 18,
+    color: GTColors.gold,
+    marginLeft: 2,
   },
   reviewTagsContainer: {
     flexDirection: 'row',

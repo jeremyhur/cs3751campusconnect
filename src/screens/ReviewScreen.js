@@ -15,7 +15,7 @@ import { GTColors, GTFonts, GTFontStyles } from '../theme';
 import { useReviews } from '../context/ReviewsContext';
 
 export default function ReviewScreen() {
-  const [overallExp, setOverallExp] = useState(null);
+  const [starRating, setStarRating] = useState(0);
   const [selectedTags, setSelectedTags] = useState([]);
   const [comments, setComments] = useState('');
   const [reportChecked, setReportChecked] = useState(false);
@@ -29,6 +29,15 @@ export default function ReviewScreen() {
   const reviewedUserId = 'gamerguy122'; // In a real app, this would come from navigation params
   const reviewerName = 'CurrentUser'; // In a real app, this would come from auth context
 
+  // Convert star rating to overallExp format
+  const getOverallExpFromStars = (stars) => {
+    if (stars === 0) return null;
+    if (stars <= 1) return 'bad';
+    if (stars <= 2) return 'okay';
+    if (stars <= 3) return 'good';
+    return 'great';
+  };
+
   const toggleTag = (tag) => {
     setSelectedTags(prev => 
       prev.includes(tag) 
@@ -38,12 +47,19 @@ export default function ReviewScreen() {
   };
 
   const handleSubmit = () => {
+    // Validate that a rating is selected
+    if (starRating === 0) {
+      alert('Please select a star rating before submitting.');
+      return;
+    }
     // Show confirmation modal
     setShowConfirmModal(true);
   };
 
   const handleConfirmSubmit = () => {
     setShowConfirmModal(false);
+    
+    const overallExp = getOverallExpFromStars(starRating);
     
     // Add review to context
     addReview({
@@ -66,6 +82,7 @@ export default function ReviewScreen() {
     }).start();
     
     console.log('Submit feedback', {
+      starRating,
       overallExp,
       selectedTags,
       comments,
@@ -75,7 +92,7 @@ export default function ReviewScreen() {
     
     // Reset form after a delay
     setTimeout(() => {
-      setOverallExp(null);
+      setStarRating(0);
       setSelectedTags([]);
       setComments('');
       setReportChecked(false);
@@ -107,12 +124,14 @@ export default function ReviewScreen() {
     }
   }, [showConfirmModal]);
 
-  const experienceOptions = [
-    { id: 'bad', emoji: '😞', label: 'Bad', color: GTColors.navy },
-    { id: 'okay', emoji: '😐', label: 'Okay', color: GTColors.goldDark },
-    { id: 'good', emoji: '🙂', label: 'Good', color: GTColors.gold },
-    { id: 'great', emoji: '😄', label: 'Great!', color: GTColors.goldLight },
-  ];
+  const getRatingLabel = (stars) => {
+    if (stars === 0) return 'Tap to rate';
+    if (stars === 1) return 'Poor';
+    if (stars === 2) return 'Fair';
+    if (stars === 3) return 'Good';
+    if (stars === 4) return 'Very Good';
+    return 'Excellent';
+  };
 
   const feedbackTags = [
     'Friendly Player',
@@ -152,23 +171,26 @@ export default function ReviewScreen() {
 
         {/* Section 1: Overall Experience */}
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>1. Overall Exp.</Text>
-          <View style={styles.expButtonsContainer}>
-            {experienceOptions.map((option) => (
-              <TouchableOpacity
-                key={option.id}
-                style={[
-                  styles.expButton,
-                  { backgroundColor: option.color },
-                  overallExp === option.id && styles.expButtonSelected,
-                ]}
-                onPress={() => setOverallExp(option.id)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.expEmoji}>{option.emoji}</Text>
-                <Text style={styles.expLabel}>{option.label}</Text>
-              </TouchableOpacity>
-            ))}
+          <Text style={styles.sectionHeader}>1. Overall Experience</Text>
+          <View style={styles.starRatingContainer}>
+            <View style={styles.starsContainer}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity
+                  key={star}
+                  onPress={() => setStarRating(star)}
+                  activeOpacity={0.7}
+                  style={styles.starButton}
+                >
+                  <Text style={[
+                    styles.star,
+                    star <= starRating && styles.starFilled
+                  ]}>
+                    {star <= starRating ? '★' : '☆'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <Text style={styles.ratingLabel}>{getRatingLabel(starRating)}</Text>
           </View>
         </View>
 
@@ -404,34 +426,32 @@ const styles = StyleSheet.create({
     color: GTColors.gold,
     marginBottom: 15,
   },
-  expButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginHorizontal: -5,
-  },
-  expButton: {
-    flex: 1,
-    paddingVertical: 15,
-    paddingHorizontal: 8,
-    borderRadius: 8,
+  starRatingContainer: {
     alignItems: 'center',
+    paddingVertical: 10,
+  },
+  starsContainer: {
+    flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  starButton: {
+    padding: 8,
     marginHorizontal: 5,
-    borderWidth: 2,
-    borderColor: '#fff',
   },
-  expButtonSelected: {
-    borderWidth: 3,
-    transform: [{ scale: 1.05 }],
+  star: {
+    fontSize: 40,
+    color: GTColors.goldDark,
   },
-  expEmoji: {
-    fontSize: 24,
-    marginBottom: 5,
+  starFilled: {
+    color: GTColors.gold,
   },
-  expLabel: {
-    ...GTFontStyles.button,
-    fontSize: 14,
-    color: GTColors.white,
+  ratingLabel: {
+    ...GTFontStyles.body,
+    fontSize: 16,
+    color: GTColors.textPrimary,
+    fontWeight: '600',
   },
   tagsContainer: {
     flexDirection: 'row',
