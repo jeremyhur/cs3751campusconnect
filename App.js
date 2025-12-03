@@ -8,6 +8,7 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 import { GTColors, GTFonts, GTFontStyles } from './src/theme';
 import { MatchesProvider } from './src/context/MatchesContext';
 import { EventsProvider } from './src/context/EventsContext';
+import { ReviewsProvider } from './src/context/ReviewsContext';
 import HomeScreen from './src/screens/HomeScreen';
 import SwipeSyncScreen from './src/screens/SwipeSyncScreen';
 import SpiritMapScreen from './src/screens/SpiritMapScreen';
@@ -195,7 +196,12 @@ function SideMenu({ visible, onClose, navigation }) {
           <ScrollView style={styles.menuContent} contentContainerStyle={styles.menuContentContainer}>
             <TouchableOpacity
               style={styles.menuItem}
-              onPress={() => handleNavigate('MainTabs')}
+              onPress={() => {
+                onClose();
+                setTimeout(() => {
+                  navigation.navigate('MainTabs', { screen: 'SwipeSync' });
+                }, 300);
+              }}
             >
               <Text style={styles.menuIcon}>🏠</Text>
               <Text style={styles.menuItemText}>Home</Text>
@@ -227,10 +233,11 @@ export default function App() {
   return (
     <MatchesProvider>
       <EventsProvider>
-        <SafeAreaProvider>
-          <NavigationContainer>
-            <StatusBar style="light" />
-            <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <ReviewsProvider>
+          <SafeAreaProvider>
+            <NavigationContainer>
+              <StatusBar style="light" />
+              <Stack.Navigator screenOptions={{ headerShown: false }}>
               {!isLoggedIn ? (
                 <Stack.Screen name="Home">
                   {(props) => <HomeScreen {...props} setIsLoggedIn={setIsLoggedIn} />}
@@ -294,6 +301,7 @@ export default function App() {
             </Stack.Navigator>
           </NavigationContainer>
         </SafeAreaProvider>
+        </ReviewsProvider>
       </EventsProvider>
     </MatchesProvider>
   );

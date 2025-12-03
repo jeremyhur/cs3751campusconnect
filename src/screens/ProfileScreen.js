@@ -9,19 +9,35 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Modal,
+  Alert,
 } from 'react-native';
 import { GTColors, GTFonts, GTFontStyles } from '../theme';
+import { useReviews } from '../context/ReviewsContext';
 
 export default function ProfileScreen() {
   const [username, setUsername] = useState('Gamer123');
   const [age, setAge] = useState('20');
   const [school, setSchool] = useState('GT');
   const [major, setMajor] = useState('CS');
+  const [bio, setBio] = useState('');
   const [gamingStyle, setGamingStyle] = useState('Competitive');
   const [selectedGenres, setSelectedGenres] = useState(['FPS', 'MOBA']);
+  const [selectedGames, setSelectedGames] = useState([]);
+  const [newGame, setNewGame] = useState('');
+  const [competitiveRank, setCompetitiveRank] = useState('');
+  const [rankVerification, setRankVerification] = useState('');
+  const [rankVerified, setRankVerified] = useState(false);
   const [selectedTags, setSelectedTags] = useState(['Competitive', 'Late Nights']);
   const [interests, setInterests] = useState(['Rock Climbing', 'Crochet', 'Guitar']);
   const [newInterest, setNewInterest] = useState('');
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [selectedReviewId, setSelectedReviewId] = useState(null);
+  const [reportReason, setReportReason] = useState('');
+
+  const { getReviewsForUser, reportReview } = useReviews();
+  const userId = 'current-user-id'; // In a real app, this would come from auth context
+  const userReviews = getReviewsForUser(userId);
 
   const gamingStyles = ['Competitive', 'Casual', 'Ranked', 'Social'];
   const genres = ['FPS', 'MOBA', 'Battle Royale', 'RPG', 'Strategy', 'Indie', 'Racing', 'Sports'];
@@ -43,6 +59,42 @@ export default function ProfileScreen() {
     );
   };
 
+  const addGame = () => {
+    if (newGame.trim() && !selectedGames.includes(newGame.trim())) {
+      setSelectedGames([...selectedGames, newGame.trim()]);
+      setNewGame('');
+    }
+  };
+
+  const removeGame = (game) => {
+    setSelectedGames(selectedGames.filter(g => g !== game));
+  };
+
+  const handleVerifyRank = () => {
+    // In a real app, this would verify the rank with the game's API or require screenshot
+    // For now, we'll just mark it as verified if verification text is provided
+    if (competitiveRank.trim() && rankVerification.trim()) {
+      setRankVerified(true);
+      // In production, this would call an API to verify
+      console.log('Verifying rank:', competitiveRank, 'with proof:', rankVerification);
+    }
+  };
+
+  const handleReportReview = (reviewId) => {
+    setSelectedReviewId(reviewId);
+    setShowReportModal(true);
+  };
+
+  const submitReport = () => {
+    if (selectedReviewId && reportReason.trim()) {
+      reportReview(selectedReviewId, reportReason);
+      Alert.alert('Report Submitted', 'Thank you for reporting this review. Our moderation team will review it.');
+      setShowReportModal(false);
+      setSelectedReviewId(null);
+      setReportReason('');
+    }
+  };
+
   const addInterest = () => {
     if (newInterest.trim() && !interests.includes(newInterest.trim())) {
       setInterests([...interests, newInterest.trim()]);
@@ -55,13 +107,23 @@ export default function ProfileScreen() {
   };
 
   const handleSave = () => {
+    // Validate mandatory fields
+    if (selectedGames.length === 0) {
+      alert('Please add at least one specific game you play.');
+      return;
+    }
+    
     console.log('Saving profile:', {
       username,
       age,
       school,
       major,
+      bio,
       gamingStyle,
       selectedGenres,
+      selectedGames,
+      competitiveRank,
+      rankVerified,
       selectedTags,
       interests,
     });
@@ -138,6 +200,19 @@ export default function ProfileScreen() {
               placeholder="Enter major"
               placeholderTextColor={GTColors.textMuted}
             />
+
+            <Text style={styles.label}>Bio</Text>
+            <TextInput
+              style={[styles.input, styles.bioInput]}
+              value={bio}
+              onChangeText={setBio}
+              placeholder="Tell us about yourself..."
+              placeholderTextColor={GTColors.textMuted}
+              multiline
+              numberOfLines={4}
+              maxLength={500}
+            />
+            <Text style={styles.charCount}>{bio.length}/500</Text>
           </View>
 
           {/* Gaming Style */}
@@ -190,6 +265,80 @@ export default function ProfileScreen() {
                 </TouchableOpacity>
               ))}
             </View>
+          </View>
+
+          {/* Specific Games Played - MANDATORY */}
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>
+              Specific Games Played <Text style={styles.required}>*</Text>
+            </Text>
+            <View style={styles.gamesContainer}>
+              {selectedGames.map((game, index) => (
+                <View key={index} style={styles.gameChip}>
+                  <Text style={styles.gameChipText}>{game}</Text>
+                  <TouchableOpacity
+                    onPress={() => removeGame(game)}
+                    style={styles.removeGameButton}
+                  >
+                    <Text style={styles.removeGameText}>×</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+            <View style={styles.addGameContainer}>
+              <TextInput
+                style={styles.addGameInput}
+                value={newGame}
+                onChangeText={setNewGame}
+                placeholder="Add game (e.g., Valorant, League of Legends)"
+                placeholderTextColor={GTColors.textMuted}
+                onSubmitEditing={addGame}
+              />
+              <TouchableOpacity
+                style={styles.addGameButton}
+                onPress={addGame}
+              >
+                <Text style={styles.addGameButtonText}>+</Text>
+              </TouchableOpacity>
+            </View>
+            {selectedGames.length === 0 && (
+              <Text style={styles.errorText}>At least one game is required</Text>
+            )}
+          </View>
+
+          {/* Competitive Rank - OPTIONAL */}
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>Competitive Rank (Optional)</Text>
+            <TextInput
+              style={styles.input}
+              value={competitiveRank}
+              onChangeText={setCompetitiveRank}
+              placeholder="e.g., Valorant: Immortal 2, League: Diamond 1"
+              placeholderTextColor={GTColors.textMuted}
+            />
+            {competitiveRank && !rankVerified && (
+              <>
+                <Text style={styles.label}>Verification (Screenshot link or proof)</Text>
+                <TextInput
+                  style={styles.input}
+                  value={rankVerification}
+                  onChangeText={setRankVerification}
+                  placeholder="Paste link to screenshot or provide proof"
+                  placeholderTextColor={GTColors.textMuted}
+                />
+                <TouchableOpacity
+                  style={styles.verifyButton}
+                  onPress={handleVerifyRank}
+                >
+                  <Text style={styles.verifyButtonText}>Verify Rank</Text>
+                </TouchableOpacity>
+              </>
+            )}
+            {rankVerified && (
+              <View style={styles.verifiedBadge}>
+                <Text style={styles.verifiedText}>✓ Verified</Text>
+              </View>
+            )}
           </View>
 
           {/* Tags */}
@@ -252,12 +401,107 @@ export default function ProfileScreen() {
             </View>
           </View>
 
+          {/* Reviews Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>Reviews & Feedback</Text>
+            {userReviews.length === 0 ? (
+              <Text style={styles.noReviewsText}>No reviews yet</Text>
+            ) : (
+              userReviews.map((review) => (
+                <View key={review.id} style={styles.reviewCard}>
+                  <View style={styles.reviewHeader}>
+                    <View>
+                      <Text style={styles.reviewerName}>{review.reviewerName || 'Anonymous'}</Text>
+                      <Text style={styles.reviewDate}>
+                        {new Date(review.createdAt).toLocaleDateString()}
+                      </Text>
+                    </View>
+                    <View style={styles.reviewRating}>
+                      {review.overallExp && (
+                        <Text style={styles.ratingEmoji}>
+                          {review.overallExp === 'bad' ? '😞' : 
+                           review.overallExp === 'okay' ? '😐' : 
+                           review.overallExp === 'good' ? '🙂' : '😄'}
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                  {review.selectedTags && review.selectedTags.length > 0 && (
+                    <View style={styles.reviewTagsContainer}>
+                      {review.selectedTags.map((tag, index) => (
+                        <View key={index} style={styles.reviewTag}>
+                          <Text style={styles.reviewTagText}>{tag}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                  {review.comments && (
+                    <Text style={styles.reviewComment}>{review.comments}</Text>
+                  )}
+                  {review.reported && (
+                    <Text style={styles.reportedBadge}>⚠️ Under Review</Text>
+                  )}
+                  <TouchableOpacity
+                    style={styles.reportButton}
+                    onPress={() => handleReportReview(review.id)}
+                  >
+                    <Text style={styles.reportButtonText}>Report</Text>
+                  </TouchableOpacity>
+                </View>
+              ))
+            )}
+          </View>
+
           {/* Save Button */}
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
             <Text style={styles.saveButtonText}>Save Profile</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Report Modal */}
+      <Modal
+        visible={showReportModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowReportModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Report Review</Text>
+            <Text style={styles.modalSubtitle}>
+              Help us maintain a positive community by reporting toxic or inappropriate reviews.
+            </Text>
+            <TextInput
+              style={styles.reportInput}
+              value={reportReason}
+              onChangeText={setReportReason}
+              placeholder="Reason for reporting (e.g., harassment, spam, false information)"
+              placeholderTextColor={GTColors.textMuted}
+              multiline
+              numberOfLines={4}
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => {
+                  setShowReportModal(false);
+                  setReportReason('');
+                  setSelectedReviewId(null);
+                }}
+              >
+                <Text style={styles.modalButtonTextCancel}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonConfirm]}
+                onPress={submitReport}
+              >
+                <Text style={styles.modalButtonTextConfirm}>Submit Report</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -358,6 +602,20 @@ const styles = StyleSheet.create({
     color: GTColors.textPrimary,
     marginBottom: 8,
     marginTop: 10,
+  },
+  required: {
+    color: '#ff4444',
+  },
+  bioInput: {
+    minHeight: 100,
+    textAlignVertical: 'top',
+  },
+  charCount: {
+    ...GTFontStyles.body,
+    fontSize: 12,
+    color: GTColors.textMuted,
+    textAlign: 'right',
+    marginTop: 5,
   },
   input: {
     backgroundColor: GTColors.darkCard,
@@ -525,6 +783,265 @@ const styles = StyleSheet.create({
   saveButtonText: {
     ...GTFontStyles.button,
     fontSize: 18,
+    color: GTColors.darkBg,
+  },
+  gamesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 15,
+    marginHorizontal: -5,
+  },
+  gameChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: GTColors.gold,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    margin: 5,
+    borderWidth: 2,
+    borderColor: GTColors.goldDark,
+  },
+  gameChipText: {
+    ...GTFontStyles.body,
+    fontSize: 14,
+    color: GTColors.darkBg,
+    marginRight: 8,
+  },
+  removeGameButton: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  removeGameText: {
+    color: GTColors.darkBg,
+    fontSize: 14,
+    fontWeight: 'bold',
+    lineHeight: 14,
+  },
+  addGameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  addGameInput: {
+    flex: 1,
+    backgroundColor: GTColors.darkCard,
+    borderWidth: 2,
+    borderColor: GTColors.goldDark,
+    borderRadius: 8,
+    padding: 12,
+    fontFamily: GTFonts.regular,
+    fontSize: 14,
+    color: GTColors.textPrimary,
+    marginRight: 10,
+  },
+  addGameButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: GTColors.gold,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: GTColors.goldDark,
+  },
+  addGameButtonText: {
+    ...GTFontStyles.button,
+    fontSize: 24,
+    color: GTColors.darkBg,
+  },
+  errorText: {
+    ...GTFontStyles.body,
+    fontSize: 12,
+    color: '#ff4444',
+    marginTop: 5,
+  },
+  verifyButton: {
+    backgroundColor: GTColors.gold,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 6,
+    alignItems: 'center',
+    marginTop: 10,
+    borderWidth: 2,
+    borderColor: GTColors.goldDark,
+  },
+  verifyButtonText: {
+    ...GTFontStyles.button,
+    fontSize: 14,
+    color: GTColors.darkBg,
+  },
+  verifiedBadge: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    alignItems: 'center',
+    marginTop: 10,
+    borderWidth: 2,
+    borderColor: '#2E7D32',
+  },
+  verifiedText: {
+    ...GTFontStyles.button,
+    fontSize: 14,
+    color: GTColors.white,
+  },
+  noReviewsText: {
+    ...GTFontStyles.body,
+    fontSize: 14,
+    color: GTColors.textMuted,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    padding: 20,
+  },
+  reviewCard: {
+    backgroundColor: GTColors.darkCard,
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: GTColors.goldDark,
+  },
+  reviewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+  },
+  reviewerName: {
+    ...GTFontStyles.heading,
+    fontSize: 16,
+    color: GTColors.gold,
+  },
+  reviewDate: {
+    ...GTFontStyles.body,
+    fontSize: 12,
+    color: GTColors.textMuted,
+    marginTop: 2,
+  },
+  reviewRating: {
+    alignItems: 'center',
+  },
+  ratingEmoji: {
+    fontSize: 24,
+  },
+  reviewTagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 10,
+    marginHorizontal: -3,
+  },
+  reviewTag: {
+    backgroundColor: GTColors.gold,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    margin: 3,
+    borderWidth: 1,
+    borderColor: GTColors.goldDark,
+  },
+  reviewTagText: {
+    ...GTFontStyles.body,
+    fontSize: 11,
+    color: GTColors.darkBg,
+  },
+  reviewComment: {
+    ...GTFontStyles.body,
+    fontSize: 14,
+    color: GTColors.textPrimary,
+    lineHeight: 20,
+    marginBottom: 10,
+  },
+  reportedBadge: {
+    ...GTFontStyles.body,
+    fontSize: 12,
+    color: '#ff9800',
+    marginBottom: 8,
+  },
+  reportButton: {
+    alignSelf: 'flex-end',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  reportButtonText: {
+    ...GTFontStyles.body,
+    fontSize: 12,
+    color: '#ff4444',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    width: '85%',
+    maxWidth: 400,
+    backgroundColor: GTColors.darkCard,
+    borderRadius: 20,
+    padding: 25,
+    borderWidth: 3,
+    borderColor: GTColors.gold,
+  },
+  modalTitle: {
+    ...GTFontStyles.heading,
+    fontSize: 22,
+    color: GTColors.gold,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    ...GTFontStyles.body,
+    fontSize: 14,
+    color: GTColors.textMuted,
+    marginBottom: 20,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  reportInput: {
+    backgroundColor: GTColors.darkBg,
+    borderWidth: 2,
+    borderColor: GTColors.goldDark,
+    borderRadius: 8,
+    padding: 12,
+    fontFamily: GTFonts.regular,
+    fontSize: 14,
+    color: GTColors.textPrimary,
+    minHeight: 100,
+    textAlignVertical: 'top',
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 2,
+    alignItems: 'center',
+  },
+  modalButtonCancel: {
+    backgroundColor: GTColors.darkCard,
+    borderColor: GTColors.goldDark,
+  },
+  modalButtonConfirm: {
+    backgroundColor: GTColors.gold,
+    borderColor: GTColors.goldDark,
+  },
+  modalButtonTextCancel: {
+    ...GTFontStyles.button,
+    fontSize: 14,
+    color: GTColors.textPrimary,
+  },
+  modalButtonTextConfirm: {
+    ...GTFontStyles.button,
+    fontSize: 14,
     color: GTColors.darkBg,
   },
 });

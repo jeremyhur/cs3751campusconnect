@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   Dimensions,
   Image,
+  Linking,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GTColors, GTFonts, GTFontStyles } from '../theme';
@@ -39,6 +41,7 @@ export default function SpiritMapScreen() {
       time: '6:00 PM',
       date: 'Today',
       players: 12,
+      description: 'Join us for a competitive Valorant tournament! Single elimination bracket. Prizes for top 3 teams. Bring your A-game!',
     },
     {
       id: 2,
@@ -48,6 +51,7 @@ export default function SpiritMapScreen() {
       time: '8:00 PM',
       date: 'Tomorrow',
       players: 8,
+      description: 'Casual League of Legends gaming night. All skill levels welcome. We\'ll form teams and play some fun matches!',
     },
     {
       id: 3,
@@ -57,6 +61,7 @@ export default function SpiritMapScreen() {
       time: '4:00 PM',
       date: 'Today',
       players: 5,
+      descriptionLink: 'https://forms.gle/example',
     },
   ];
 
@@ -164,6 +169,34 @@ export default function SpiritMapScreen() {
                   <Text style={styles.eventDetails}>📍 {event.building}</Text>
                   <Text style={styles.eventDetails}>🕐 {event.time} - {event.date}</Text>
                   <Text style={styles.eventDetails}>👥 {event.players} players</Text>
+                  {event.description && (
+                    <View style={styles.descriptionContainer}>
+                      <Text style={styles.descriptionText}>{event.description}</Text>
+                    </View>
+                  )}
+                  {event.descriptionLink && (
+                    <TouchableOpacity
+                      style={styles.linkButton}
+                      onPress={async () => {
+                        try {
+                          const supported = await Linking.canOpenURL(event.descriptionLink);
+                          if (supported) {
+                            await Linking.openURL(event.descriptionLink);
+                          } else {
+                            Alert.alert('Error', `Cannot open this URL: ${event.descriptionLink}`);
+                          }
+                        } catch (error) {
+                          Alert.alert('Error', 'Failed to open link. Please try again.');
+                          console.error('Error opening link:', error);
+                        }
+                      }}
+                    >
+                      <Text style={styles.linkText}>📋 View Event Details</Text>
+                    </TouchableOpacity>
+                  )}
+                  {!event.description && !event.descriptionLink && (
+                    <Text style={styles.noDescriptionText}>No description provided</Text>
+                  )}
                   <TouchableOpacity
                     style={[styles.joinButton, signedUp && styles.joinedButton]}
                     onPress={() => {
@@ -389,6 +422,44 @@ const styles = StyleSheet.create({
     ...GTFontStyles.button,
     fontSize: 12,
     color: GTColors.darkBg,
+  },
+  descriptionContainer: {
+    marginTop: 10,
+    marginBottom: 10,
+    padding: 10,
+    backgroundColor: GTColors.darkBg,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: GTColors.goldDark,
+  },
+  descriptionText: {
+    ...GTFontStyles.body,
+    fontSize: 12,
+    color: GTColors.textPrimary,
+    lineHeight: 18,
+  },
+  linkButton: {
+    marginTop: 8,
+    marginBottom: 8,
+    padding: 8,
+    backgroundColor: GTColors.gold,
+    borderRadius: 6,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: GTColors.goldDark,
+  },
+  linkText: {
+    ...GTFontStyles.button,
+    fontSize: 12,
+    color: GTColors.darkBg,
+  },
+  noDescriptionText: {
+    ...GTFontStyles.body,
+    fontSize: 11,
+    color: GTColors.textMuted,
+    fontStyle: 'italic',
+    marginTop: 5,
+    marginBottom: 5,
   },
   friendsSection: {
     padding: 15,

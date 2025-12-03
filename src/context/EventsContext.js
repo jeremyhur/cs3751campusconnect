@@ -12,6 +12,7 @@ export const useEvents = () => {
 
 export const EventsProvider = ({ children }) => {
   const [signedUpEvents, setSignedUpEvents] = useState([]);
+  const [createdEvents, setCreatedEvents] = useState([]);
 
   const signUpForEvent = (event) => {
     const newEvent = {
@@ -37,11 +38,39 @@ export const EventsProvider = ({ children }) => {
     return signedUpEvents.some((e) => e.id === eventId);
   };
 
+  const createEvent = (eventData) => {
+    const newEvent = {
+      ...eventData,
+      id: Date.now(),
+      createdAt: new Date().toISOString(),
+      players: 0, // Start with 0 players, will increment as people join
+      createdBy: 'current-user', // In a real app, this would be the user ID
+    };
+    setCreatedEvents((prev) => [...prev, newEvent]);
+    return newEvent;
+  };
+
+  const updateEvent = (eventId, updates) => {
+    setCreatedEvents((prev) =>
+      prev.map((event) => (event.id === eventId ? { ...event, ...updates } : event))
+    );
+  };
+
+  const deleteEvent = (eventId) => {
+    setCreatedEvents((prev) => prev.filter((e) => e.id !== eventId));
+    // Also remove from signed up events if user was signed up
+    setSignedUpEvents((prev) => prev.filter((e) => e.id !== eventId));
+  };
+
   const value = {
     signedUpEvents,
+    createdEvents,
     signUpForEvent,
     cancelEvent,
     isSignedUp,
+    createEvent,
+    updateEvent,
+    deleteEvent,
   };
 
   return (

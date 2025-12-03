@@ -12,6 +12,7 @@ import {
   Animated,
 } from 'react-native';
 import { GTColors, GTFonts, GTFontStyles } from '../theme';
+import { useReviews } from '../context/ReviewsContext';
 
 export default function ReviewScreen() {
   const [overallExp, setOverallExp] = useState(null);
@@ -23,6 +24,10 @@ export default function ReviewScreen() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [confirmScaleAnim] = useState(new Animated.Value(0));
   const [successScaleAnim] = useState(new Animated.Value(0));
+  
+  const { addReview } = useReviews();
+  const reviewedUserId = 'gamerguy122'; // In a real app, this would come from navigation params
+  const reviewerName = 'CurrentUser'; // In a real app, this would come from auth context
 
   const toggleTag = (tag) => {
     setSelectedTags(prev => 
@@ -39,6 +44,17 @@ export default function ReviewScreen() {
 
   const handleConfirmSubmit = () => {
     setShowConfirmModal(false);
+    
+    // Add review to context
+    addReview({
+      reviewedUserId,
+      reviewerName,
+      overallExp,
+      selectedTags,
+      comments,
+      reportChecked,
+      friendChecked,
+    });
     
     // Animate success modal
     setShowSuccessModal(true);

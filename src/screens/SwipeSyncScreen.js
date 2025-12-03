@@ -33,6 +33,7 @@ export default function SwipeSyncScreen() {
       school: 'GT',
       major: 'CS',
       reputation: 4.8,
+      bio: 'Love competitive gaming and always looking for teammates who communicate well. I play mostly in the evenings and weekends.',
       gamingStyle: 'Competitive',
       genres: ['FPS', 'MOBA', 'Battle Royale'],
       interests: ['Rock Climbing', 'Crochet', 'Guitar'],
@@ -46,6 +47,7 @@ export default function SwipeSyncScreen() {
       school: 'GT',
       major: 'Engineering',
       reputation: 4.9,
+      bio: 'Casual gamer who enjoys story-driven games and co-op experiences. Always down for a chill gaming session!',
       gamingStyle: 'Casual',
       genres: ['RPG', 'Strategy', 'Indie'],
       interests: ['Reading', 'Coding', 'Music'],
@@ -59,6 +61,7 @@ export default function SwipeSyncScreen() {
       school: 'GT',
       major: 'Computer Science',
       reputation: 4.7,
+      bio: 'Immortal rank in Valorant, looking for serious teammates to climb ranked. I stream occasionally and love the competitive scene.',
       gamingStyle: 'Competitive',
       genres: ['FPS', 'Tactical Shooter'],
       interests: ['Esports', 'Streaming', 'Basketball'],
@@ -72,6 +75,7 @@ export default function SwipeSyncScreen() {
       school: 'GT',
       major: 'Business',
       reputation: 4.6,
+      bio: 'Diamond player in League, main support and ADC. Looking for a consistent team for ranked flex. Also love chess and strategy games!',
       gamingStyle: 'Ranked',
       genres: ['MOBA', 'Strategy'],
       interests: ['Chess', 'Finance', 'Cooking'],
@@ -85,6 +89,7 @@ export default function SwipeSyncScreen() {
       school: 'GT',
       major: 'Mechanical Engineering',
       reputation: 4.9,
+      bio: 'Global Elite in CS2, very focused on improving aim and game sense. Looking for teammates who take the game seriously but stay positive.',
       gamingStyle: 'Competitive',
       genres: ['FPS', 'Tactical Shooter'],
       interests: ['3D Printing', 'Robotics', 'Gym'],
@@ -98,6 +103,7 @@ export default function SwipeSyncScreen() {
       school: 'GT',
       major: 'Industrial Design',
       reputation: 4.5,
+      bio: 'Passionate about immersive RPGs and indie games. Love exploring rich storylines and beautiful worlds. Always up for co-op adventures!',
       gamingStyle: 'Casual',
       genres: ['RPG', 'Adventure', 'Indie'],
       interests: ['Art', 'Photography', 'Hiking'],
@@ -110,6 +116,7 @@ export default function SwipeSyncScreen() {
       school: 'GT',
       major: 'Aerospace Engineering',
       reputation: 4.8,
+      bio: 'Masters rank in Apex, love fast-paced action and team coordination. Looking for a consistent squad to grind ranked with.',
       gamingStyle: 'Competitive',
       genres: ['Battle Royale', 'FPS'],
       interests: ['Aviation', 'Sim Racing', 'Fitness'],
@@ -122,6 +129,7 @@ export default function SwipeSyncScreen() {
       school: 'GT',
       major: 'Mathematics',
       reputation: 4.7,
+      bio: 'Strategy game enthusiast, from RTS to turn-based. Love deep thinking and planning. Always looking for challenging opponents and teammates.',
       gamingStyle: 'Ranked',
       genres: ['Strategy', 'RTS', 'Turn-Based'],
       interests: ['Puzzles', 'Board Games', 'Research'],
@@ -228,6 +236,14 @@ export default function SwipeSyncScreen() {
             <Text style={styles.infoText}>School: {profile.school}</Text>
             <Text style={styles.infoText}>Major: {profile.major}</Text>
           </View>
+
+          {/* Bio */}
+          {profile.bio && (
+            <View style={styles.section}>
+              <Text style={styles.sectionHeader}>About:</Text>
+              <Text style={styles.bioText}>{profile.bio}</Text>
+            </View>
+          )}
 
           {/* Gaming Style */}
           <View style={styles.section}>
@@ -547,6 +563,17 @@ const styles = StyleSheet.create({
     color: GTColors.textMuted,
     textAlign: 'center',
     lineHeight: 24,
+  },
+  bioText: {
+    ...GTFontStyles.body,
+    fontSize: 14,
+    color: GTColors.textPrimary,
+    lineHeight: 20,
+    padding: 12,
+    backgroundColor: GTColors.darkBg,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: GTColors.goldDark,
   },
 });
 
